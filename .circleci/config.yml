@@ -39,10 +39,24 @@ jobs:
     description: Run tests
     steps:
       - checkout
-      - node/install-packages
+      - restore_cache:
+          name: Restore cache
+          keys:
+            - pnpm-packages-{{ checksum "pnpm-lock.yaml" }}
       - run:
-          name: Install jest-junit
-          command: npm install jest-junit
+          name: Install pnpm package manager
+          command: |
+            corepack enable
+            corepack prepare pnpm@latest-9 --activate
+            pnpm config set store-dir .pnpm-store
+      - run:
+          name: Install pnpm packages
+          command: pnpm install
+      - save_cache:
+          name: Save cache
+          key: pnpm-packages-{{ checksum "pnpm-lock.yaml" }}
+          paths:
+            - ~/.pnpm-store
       - run:
           name: Run tests
           command: pnpm test
