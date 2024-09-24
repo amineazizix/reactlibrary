@@ -1,0 +1,69 @@
+version: 2.1
+orbs:
+  node: circleci/node@5
+jobs:
+  lint:
+    executor: node/default
+    description: Lint the code
+    steps:
+      - checkout
+      - node/install-packages
+      - run:
+          name: Lint the code
+          command: pnpm lint:fix
+  run-tests:
+    # Install node dependencies and run tests
+    executor: node/default
+    description: Run tests
+    steps:
+      - checkout
+      - node/install-packages
+          # cache-path: ~/project/node_modules
+          # override-ci-command: npm install
+      # - run:
+      #     command: npm install jest-junit
+      - run:
+          name: Run tests
+          command: pnpm test
+      - store_test_results:
+          path: ./test-results/
+  build:
+    # Build node project
+    executor: node/default
+    description: Build the project
+    steps:
+      - checkout
+      - node/install-packages
+      - run:
+          name: Build the project
+          command: pnpm build
+      # - run:
+      #     name: Create the ~/artifacts directory if it doesn't exist
+      #     command: mkdir -p ~/artifacts
+      # # Copy output to artifacts dir
+      # - run:
+      #     name: Copy artifacts
+      #     command: cp -R build dist public .output .next .docusaurus ~/artifacts 2>/dev/null || true
+      # - store_artifacts:
+      #     path: ~/artifacts
+      #     destination: node-build
+  # deploy:
+  #   # This is an example deploy job, not actually used by the workflow
+  #   docker:
+  #     - image: cimg/base:stable
+  #   steps:
+  #     # Replace this with steps to deploy to users
+  #     - run:
+  #         name: deploy
+  #         command: '#e.g. ./deploy.sh'
+workflows:
+  build-and-test:
+    jobs:
+      - lint
+      - run-tests
+      - build:
+          requires:
+            - run-tests
+    # - deploy:
+    #     requires:
+    #       - build-node
