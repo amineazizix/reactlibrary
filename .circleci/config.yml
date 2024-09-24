@@ -3,33 +3,56 @@ orbs:
   node: circleci/node@5
 jobs:
   lint:
-    executor: node/default
+    docker:
+      - image: node:18
+    resource_class: large
+    parallelism: 10
     description: Lint the code
     steps:
       - checkout
-      - node/install-packages
+      - restore_cache:
+          name: Restore cache
+          keys:
+            - pnpm-packages-{{ checksum "pnpm-lock.yaml" }}
+      - run:
+          name: Install pnpm package manager
+          command: |
+            corepack enable
+            corepack prepare pnpm@latest-9 --activate
+            pnpm config set store-dir .pnpm-store
+      - run:
+          name: Install pnpm packages
+          command: pnpm install
+      - save_cache:
+          name: Save cache
+          key: pnpm-packages-{{ checksum "pnpm-lock.yaml" }}
+          paths:
+            - ~/.pnpm-store
       - run:
           name: Lint the code
           command: pnpm lint:fix
   run-tests:
-    # Install node dependencies and run tests
-    executor: node/default
+    docker:
+      - image: node:18
+    resource_class: large
+    parallelism: 10
     description: Run tests
     steps:
       - checkout
       - node/install-packages
-          # cache-path: ~/project/node_modules
-          # override-ci-command: npm install
-      # - run:
-      #     command: npm install jest-junit
+      - run:
+          name: Install jest-junit
+          command: npm install jest-junit
       - run:
           name: Run tests
           command: pnpm test
       - store_test_results:
           path: ./test-results/
   build:
-    # Build node project
-    executor: node/default
+    docker:
+      - image: node:18
+    resource_class: large
+    parallelism: 10
     description: Build the project
     steps:
       - checkout
@@ -37,11 +60,7 @@ jobs:
       - run:
           name: Build the project
           command: pnpm build
-      # - run:
-      #     name: Create the ~/artifacts directory if it doesn't exist
-      #     command: mkdir -p ~/artifacts
-      # # Copy output to artifacts dir
-      # - run:
+  # deploy:
       #     name: Copy artifacts
       #     command: cp -R build dist public .output .next .docusaurus ~/artifacts 2>/dev/null || true
       # - store_artifacts:
@@ -57,7 +76,7 @@ jobs:
   #         name: deploy
   #         command: '#e.g. ./deploy.sh'
 workflows:
-  build-and-test:
+  build-library:
     jobs:
       - lint
       - run-tests
