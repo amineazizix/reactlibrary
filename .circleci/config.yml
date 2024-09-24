@@ -91,29 +91,77 @@ jobs:
       - run:
           name: Build the project
           command: pnpm build
-  # deploy:
-      #     name: Copy artifacts
-      #     command: cp -R build dist public .output .next .docusaurus ~/artifacts 2>/dev/null || true
-      # - store_artifacts:
-      #     path: ~/artifacts
-      #     destination: node-build
-  # deploy:
-  #   # This is an example deploy job, not actually used by the workflow
-  #   docker:
-  #     - image: cimg/base:stable
-  #   steps:
-  #     # Replace this with steps to deploy to users
-  #     - run:
-  #         name: deploy
-  #         command: '#e.g. ./deploy.sh'
+  release:
+    docker:
+      - image: node:18
+    resource_class: large
+    parallelism: 10
+    description: Release the project
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore cache
+          keys:
+            - pnpm-packages-{{ checksum "pnpm-lock.yaml" }}
+      - run:
+          name: Install pnpm package manager
+          command: |
+            corepack enable
+            corepack prepare pnpm@latest-9 --activate
+            pnpm config set store-dir .pnpm-store
+      - run:
+          name: Install pnpm packages
+          command: pnpm install
+      - save_cache:
+          name: Save cache
+          key: pnpm-packages-{{ checksum "pnpm-lock.yaml" }}
+          paths:
+            - ~/.pnpm-store
+      - run:
+          name: Release the project
+          command: pnpm release
+  publish:
+    docker:
+      - image: node:18
+    resource_class: large
+    parallelism: 10
+    description: Publish the project
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore cache
+          keys:
+            - pnpm-packages-{{ checksum "pnpm-lock.yaml" }}
+      - run:
+          name: Install pnpm package manager
+          command: |
+            corepack enable
+            corepack prepare pnpm@latest-9 --activate
+            pnpm config set store-dir .pnpm-store
+      - run:
+          name: Install pnpm packages
+          command: pnpm install
+      - save_cache:
+          name: Save cache
+          key: pnpm-packages-{{ checksum "pnpm-lock.yaml" }}
+          paths:
+            - ~/.pnpm-store
+      - run:
+          name: Publish the project
+          command: pnpm publish
 workflows:
   build-library:
     jobs:
       - lint
-      - run-tests
+      - run-tests:
+          requires:
+            - lint
       - build:
           requires:
             - run-tests
-    # - deploy:
-    #     requires:
-    #       - build-node
+      - release:
+          requires:
+            - build
+      - publish:
+          requires:
+            - release

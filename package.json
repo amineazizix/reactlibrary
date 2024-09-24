@@ -1,7 +1,7 @@
 {
-  "name": "reactlibrary",
+  "name": "testing-react-library-scaffolding",
   "version": "0.0.1",
-  "description": "A simple React library",
+  "description": "A simple and minimal React library scaffolding project",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
@@ -17,7 +17,8 @@
     "prepare": "husky",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "release": "standard-version"
+    "release": "standard-version",
+    "publish": "pnpm publish --access public"
   },
   "jest": {
     "testEnvironment": "jsdom"
@@ -40,7 +41,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/amineazizix/react-library.git"
+    "url": "https://github.com/amineazizix/testing-react-library-scaffolding.git"
+  },
+  "homepage": "https://github.com/amineazizix/testing-react-library-scaffolding#readme",
+  "bugs": {
+    "url": "https://github.com/amineazizix/testing-react-library-scaffolding/issues"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.25.4",
