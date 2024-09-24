@@ -118,6 +118,11 @@ jobs:
           paths:
             - ~/.pnpm-store
       - run:
+          name: Set up git config
+          command: |
+            git config --global user.email $GIT_EMAIL
+            git config --global user.name $GIT_NAME 
+      - run:
           name: Release the project
           command: pnpm release
   publish:
@@ -149,6 +154,8 @@ jobs:
       - run:
           name: Publish the project
           command: pnpm publish
+          environment:
+            NPM_TOKEN: $NPM_TOKEN
 workflows:
   build-library:
     jobs:
