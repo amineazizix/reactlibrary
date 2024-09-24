@@ -152,6 +152,9 @@ jobs:
           paths:
             - ~/.pnpm-store
       - run:
+          name: Set up NPM_TOKEN
+          command: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+      - run:
           name: Publish the project
           command: pnpm publish
           environment:
